@@ -1,59 +1,92 @@
+#![allow(clippy::result_large_err)]
+
 use anchor_lang::prelude::*;
 
-declare_id!("Cr5qHmgnDgpRQzLpKorQhadioE46mhLHbMHeLxupVN2y");
+declare_id!("9UYoqKcSHFhTBRoiYBcrkabsBbUKAdx68TZGLKokZKR1");
 
 #[program]
 pub mod oracle {
     use super::*;
-
-    pub fn create_ledger(ctx: Context<CreateLedger>, _feedid: u16) -> Result<()> {
-        let ledger_account = &mut ctx.accounts.ledger_account;
-        ledger_account.value = 0;
-        ledger_account.timestamp = 0;
-        ledger_account.license = 0;
+    pub fn initialize(ctx: Context<InitializeOracle>, _feedid: u16) -> Result<()> {
+        let datafeed = &mut ctx.accounts.datafeed;
+        datafeed.owner = ctx.accounts.signer.key();
 
         Ok(())
     }
 
-    pub fn get_value(ctx: Context<SetValue>) -> Result<(u32, u32)> {
-        let ledger_account = &mut ctx.accounts.ledger_account;      
-        
+    pub fn get_datafeed(ctx: Context<GetDataFeed>) -> Result<(u32, u32)> {
+        let datafeed = &mut ctx.accounts.datafeed;
+
         if
-            ledger_account.license > 0 &&
-            !ledger_account.subscribers.iter().any(|p| p == &ctx.accounts.wallet.key())
+            datafeed.license > 0 &&
+            !datafeed.subscribers.iter().any(|p| p == &ctx.accounts.signer.key())
         {
-            msg!("access denied");
-            return Ok(( 0, 0));
+            return err!(OracleErrors::Subscribe);
         }
 
-        Ok((ledger_account.value, ledger_account.timestamp))
+        let value_slice = (datafeed.value >> 32) as u32;
+        let timestamp = (datafeed.value & 0xffffffff) as u32;
+
+        let sq = (timestamp as f64).sqrt() as u32;
+        let value = value_slice - sq;
+
+        msg!("Returning {} as {} and {} ", datafeed.value, value, timestamp);
+
+        Ok((value, timestamp))
     }
 
     pub fn set_value(ctx: Context<SetValue>, value: u32, timestamp: u32) -> Result<()> {
-        let ledger_account = &mut ctx.accounts.ledger_account;
-        ledger_account.value = value;
-        ledger_account.timestamp = timestamp;
+        let datafeed = &mut ctx.accounts.datafeed;
+
+        let coded_value = (value as f64) + (timestamp as f64).sqrt();
+        let combined_value = ((coded_value as u64) << 32) | (timestamp as u64);
+
+        datafeed.value = combined_value;
+
+        msg!("New value {} that means {}", datafeed.value, value);
 
         Ok(())
     }
 
+    
     pub fn set_license(ctx: Context<SetLicense>, license: u8) -> Result<()> {
-        let ledger_account = &mut ctx.accounts.ledger_account;
-        ledger_account.license = license;
+        let datafeed = &mut ctx.accounts.datafeed;
+
+        if ctx.accounts.signer.key() != datafeed.owner {
+            return err!(OracleErrors::AccessDenied);
+        }
+
+        datafeed.license = license;
+
+        msg!("New license {}", datafeed.license);
 
         Ok(())
     }
 
     pub fn add_subscription(ctx: Context<AddSubscription>, address: Pubkey) -> Result<()> {
-        let ledger_account = &mut ctx.accounts.ledger_account;
-        ledger_account.subscribers.push(address);
+        let datafeed = &mut ctx.accounts.datafeed;
+
+        // if ctx.accounts.signer.key() != datafeed.owner {
+        //     return err!(OracleErrors::AccessDenied);
+        // }
+
+        if !datafeed.subscribers.iter().any(|p| p == &address) {
+            datafeed.subscribers.push(address);
+            msg!("New Subscrption {}", address);
+        }
 
         Ok(())
     }
-
     pub fn revoke_subscription(ctx: Context<RevokeSubscription>, address: Pubkey) -> Result<()> {
-        let ledger_account = &mut ctx.accounts.ledger_account;
-        ledger_account.subscribers.retain(|pubkey| pubkey != &address);
+        let datafeed = &mut ctx.accounts.datafeed;
+
+       if ctx.accounts.signer.key() != datafeed.owner {
+            return err!(OracleErrors::AccessDenied);            
+        }
+
+        datafeed.subscribers.retain(|pubkey| pubkey != &address);
+
+        msg!("Revoked subscrption {}", address);
 
         Ok(())
     }
@@ -61,65 +94,66 @@ pub mod oracle {
 
 #[derive(Accounts)]
 #[instruction(feedid: u16)]
-pub struct CreateLedger<'info> {
+pub struct InitializeOracle<'info> {
     #[account(
         init,
-        payer = wallet,
-        space = 82,
-        seeds = [wallet.key().as_ref(), b"_", feedid.to_string().as_ref()],
+        payer = signer,
+        space = 256,
+        seeds = [signer.key().as_ref(), b"_", feedid.to_string().as_ref()],
         bump
     )]
-    pub ledger_account: Account<'info, Ledger>,
+    pub datafeed: Account<'info, DataFeed>,
     #[account(mut)]
-    pub wallet: Signer<'info>,
+    pub signer: Signer<'info>,
     pub system_program: Program<'info, System>,
 }
 
 #[derive(Accounts)]
-pub struct GetValue<'info> {
+pub struct GetDataFeed<'info> {
     #[account(mut)]
-    pub ledger_account: Account<'info, Ledger>,
-    #[account(mut)]
-    pub wallet: Signer<'info>,
+    pub datafeed: Account<'info, DataFeed>,
+    pub signer: Signer<'info>,
 }
 
 #[derive(Accounts)]
 pub struct SetValue<'info> {
     #[account(mut)]
-    pub ledger_account: Account<'info, Ledger>,
-    #[account(mut)]
-    pub wallet: Signer<'info>,
+    pub datafeed: Account<'info, DataFeed>,    
 }
 
 #[derive(Accounts)]
 pub struct SetLicense<'info> {
     #[account(mut)]
-    pub ledger_account: Account<'info, Ledger>,
-    #[account(mut)]
-    pub wallet: Signer<'info>,
+    pub datafeed: Account<'info, DataFeed>,
+    pub signer: Signer<'info>,
 }
 
 #[derive(Accounts)]
 pub struct AddSubscription<'info> {
     #[account(mut)]
-    pub ledger_account: Account<'info, Ledger>,
-    #[account(mut)]
-    pub wallet: Signer<'info>,
+    pub datafeed: Account<'info, DataFeed>,
+    pub signer: Signer<'info>,
 }
 
 #[derive(Accounts)]
 pub struct RevokeSubscription<'info> {
     #[account(mut)]
-    pub ledger_account: Account<'info, Ledger>,
-    #[account(mut)]
-    pub wallet: Signer<'info>,
+    pub datafeed: Account<'info, DataFeed>,
+    pub signer: Signer<'info>,
 }
 
-
 #[account]
-pub struct Ledger {
-    value: u32,
-    timestamp: u32,
+pub struct DataFeed {
+    value: u64,
     license: u8,
+    owner: Pubkey,
     subscribers: Vec<Pubkey>,
+}
+
+#[error_code]
+pub enum OracleErrors {
+    #[msg("You dont have access!")]
+    AccessDenied,
+    #[msg("Subscribe this feed at https://fact.finance")]
+    Subscribe,
 }
