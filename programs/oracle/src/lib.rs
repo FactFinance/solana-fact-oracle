@@ -38,6 +38,10 @@ pub mod oracle {
     pub fn set_value(ctx: Context<SetValue>, value: u32, timestamp: u32) -> Result<()> {
         let datafeed = &mut ctx.accounts.datafeed;
 
+        if ctx.accounts.signer.key() != datafeed.owner {
+            return err!(OracleErrors::AccessDenied);
+        }
+
         let coded_value = (value as f64) + (timestamp as f64).sqrt();
         let combined_value = ((coded_value as u64) << 32) | (timestamp as u64);
 
@@ -66,9 +70,9 @@ pub mod oracle {
     pub fn add_subscription(ctx: Context<AddSubscription>, address: Pubkey) -> Result<()> {
         let datafeed = &mut ctx.accounts.datafeed;
 
-        // if ctx.accounts.signer.key() != datafeed.owner {
-        //     return err!(OracleErrors::AccessDenied);
-        // }
+        if ctx.accounts.signer.key() != datafeed.owner {
+            return err!(OracleErrors::AccessDenied);
+        }
 
         if !datafeed.subscribers.iter().any(|p| p == &address) {
             datafeed.subscribers.push(address);
@@ -118,7 +122,8 @@ pub struct GetDataFeed<'info> {
 #[derive(Accounts)]
 pub struct SetValue<'info> {
     #[account(mut)]
-    pub datafeed: Account<'info, DataFeed>,    
+    pub datafeed: Account<'info, DataFeed>,  
+    pub signer: Signer<'info>,
 }
 
 #[derive(Accounts)]
@@ -154,6 +159,6 @@ pub struct DataFeed {
 pub enum OracleErrors {
     #[msg("You dont have access!")]
     AccessDenied,
-    #[msg("Subscribe this feed at https://fact.finance")]
+    #[msg("Subscribe to this feed at https://fact.finance")]
     Subscribe,
 }
