@@ -1,12 +1,14 @@
-#![allow(clippy::result_large_err)]
-
 use anchor_lang::prelude::*;
 
+// Declares the ID for the program
 declare_id!("9UYoqKcSHFhTBRoiYBcrkabsBbUKAdx68TZGLKokZKR1");
 
+// Definition of the Oracle program module
 #[program]
 pub mod oracle {
     use super::*;
+
+    // Initializes a data feed
     pub fn initialize(ctx: Context<InitializeOracle>, _feedid: u16) -> Result<()> {
         let datafeed = &mut ctx.accounts.datafeed;
         datafeed.owner = ctx.accounts.signer.key();
@@ -14,7 +16,8 @@ pub mod oracle {
         Ok(())
     }
 
-    pub fn get_datafeed(ctx: Context<GetDataFeed>) -> Result<(u32, u32)> {
+    // Gets data from the data feed
+    pub fn get_datafeed(ctx: Context<GetDataFeed>) -> Result<(i32, u32)> {
         let datafeed = &mut ctx.accounts.datafeed;
 
         if
@@ -24,35 +27,30 @@ pub mod oracle {
             return err!(OracleErrors::Subscribe);
         }
 
-        let value_slice = (datafeed.value >> 32) as u32;
-        let timestamp = (datafeed.value & 0xffffffff) as u32;
+        msg!("returning value {} from {} to {}", datafeed.value, datafeed.timestamp,&ctx.accounts.signer.key() );
 
-        let sq = (timestamp as f64).sqrt() as u32;
-        let value = value_slice - sq;
-
-        msg!("Returning {} as {} and {} ", datafeed.value, value, timestamp);
-
-        Ok((value, timestamp))
+        Ok((datafeed.value, datafeed.timestamp))
     }
 
-    pub fn set_value(ctx: Context<SetValue>, value: u32, timestamp: u32) -> Result<()> {
+    // Sets the value of the data feed
+    pub fn set_value(ctx: Context<SetValue>, value: i32, timestamp: u32, symbol: String) -> Result<()> {
         let datafeed = &mut ctx.accounts.datafeed;
 
         if ctx.accounts.signer.key() != datafeed.owner {
             return err!(OracleErrors::AccessDenied);
         }
 
-        let coded_value = (value as f64) + (timestamp as f64).sqrt();
-        let combined_value = ((coded_value as u64) << 32) | (timestamp as u64);
+        datafeed.value = value;
+        datafeed.timestamp = timestamp;
 
-        datafeed.value = combined_value;
-
-        msg!("New value {} that means {}", datafeed.value, value);
+        msg!("New value {} for {}", datafeed.value, symbol);
 
         Ok(())
     }
 
-    
+    // Sets the license of the data feed
+    // 0 for OpenOracle
+    // 1 for Subscription required
     pub fn set_license(ctx: Context<SetLicense>, license: u8) -> Result<()> {
         let datafeed = &mut ctx.accounts.datafeed;
 
@@ -67,6 +65,7 @@ pub mod oracle {
         Ok(())
     }
 
+    // Adds a subscription to the data feed
     pub fn add_subscription(ctx: Context<AddSubscription>, address: Pubkey) -> Result<()> {
         let datafeed = &mut ctx.accounts.datafeed;
 
@@ -81,6 +80,8 @@ pub mod oracle {
 
         Ok(())
     }
+
+    // Revokes a subscription from the data feed
     pub fn revoke_subscription(ctx: Context<RevokeSubscription>, address: Pubkey) -> Result<()> {
         let datafeed = &mut ctx.accounts.datafeed;
 
@@ -96,6 +97,7 @@ pub mod oracle {
     }
 }
 
+// Definition of accounts for initializing the Oracle
 #[derive(Accounts)]
 #[instruction(feedid: u16)]
 pub struct InitializeOracle<'info> {
@@ -112,6 +114,7 @@ pub struct InitializeOracle<'info> {
     pub system_program: Program<'info, System>,
 }
 
+// Definition of accounts for getting data from the data feed
 #[derive(Accounts)]
 pub struct GetDataFeed<'info> {
     #[account(mut)]
@@ -119,6 +122,7 @@ pub struct GetDataFeed<'info> {
     pub signer: Signer<'info>,
 }
 
+// Definition of accounts for setting the value of the data feed
 #[derive(Accounts)]
 pub struct SetValue<'info> {
     #[account(mut)]
@@ -126,6 +130,7 @@ pub struct SetValue<'info> {
     pub signer: Signer<'info>,
 }
 
+// Definition of accounts for setting the license of the data feed
 #[derive(Accounts)]
 pub struct SetLicense<'info> {
     #[account(mut)]
@@ -133,6 +138,7 @@ pub struct SetLicense<'info> {
     pub signer: Signer<'info>,
 }
 
+// Definition of accounts for adding a subscription to the data feed
 #[derive(Accounts)]
 pub struct AddSubscription<'info> {
     #[account(mut)]
@@ -140,6 +146,7 @@ pub struct AddSubscription<'info> {
     pub signer: Signer<'info>,
 }
 
+// Definition of accounts for revoking a subscription from the data feed
 #[derive(Accounts)]
 pub struct RevokeSubscription<'info> {
     #[account(mut)]
@@ -147,17 +154,20 @@ pub struct RevokeSubscription<'info> {
     pub signer: Signer<'info>,
 }
 
+// Definition of the data feed account
 #[account]
 pub struct DataFeed {
-    value: u64,
+    value: i32,
+    timestamp: u32,
     license: u8,
     owner: Pubkey,
     subscribers: Vec<Pubkey>,
 }
 
+// Definition of custom error codes for the Oracle program
 #[error_code]
 pub enum OracleErrors {
-    #[msg("You dont have access!")]
+    #[msg("Access denied!")]
     AccessDenied,
     #[msg("Subscribe to this feed at https://fact.finance")]
     Subscribe,
