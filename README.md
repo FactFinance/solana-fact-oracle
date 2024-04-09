@@ -6,8 +6,36 @@
 
 ## Main functions
 
-### Create...
+### set_license()
+    // Sets the license of the data feed
+    // 0 for OpenOracle
+    // 1 for Subscription required
 
+### add_subscription()
+    // Adds a subscription to the data feed
+    
+### revoke_subscription()
+    // Revokes a subscription from the data feed
+
+### set_value()
+    // Set/update the value of the data feed
+
+### get_datafeed()
+    // Gets data from the data feed
+    // returns value, timestamp , confidendIndex
+    // i32, u32, u8
+
+## DataFeed account
+The string format to create the address is:
+  - wallet.publicKey.toBuffer()
+  - Buffer.from("_")
+  - Buffer.from(feedid.toString())]
+  - oracle.programId
+
+## Running Oracle Address
+  - DevNet https://explorer.solana.com/address/9UYoqKcSHFhTBRoiYBcrkabsBbUKAdx68TZGLKokZKR1?cluster=devnet
+  - TestNet https://explorer.solana.com/address/9UYoqKcSHFhTBRoiYBcrkabsBbUKAdx68TZGLKokZKR1?cluster=devnet
+    
 ## Installation
 
 ```bash
@@ -28,7 +56,9 @@ Run:
     anchor run test
 ```
 
-
+## Be in touch
+  - https://fact.finance
+  - https://twitter.com/TheFactOracle
 
 ## License
 
