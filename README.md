@@ -10,6 +10,8 @@
     // Sets the license of the data feed
     // 0 for OpenOracle
     // 1 for Subscription required
+    @param ctx: Context<SetLicense>, 
+    @param license: u8
 
 ### add_subscription()
     // Adds a subscription to the data feed
@@ -19,6 +21,11 @@
 
 ### set_value()
     // Set/update the value of the data feed
+    @param ctx: Context<SetValue>, 
+    @param value: i32, 
+    @param timestamp: u32, 
+    @param symbol: String) 
+    @return //none
 
 ### get_datafeed()
     // Gets data from the data feed
