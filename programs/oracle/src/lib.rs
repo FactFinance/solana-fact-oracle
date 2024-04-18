@@ -40,10 +40,12 @@ pub mod oracle {
             return err!(OracleErrors::AccessDenied);
         }
 
-        datafeed.value = value;
-        datafeed.timestamp = timestamp;
+        if check_limit(value, datafeed.min, datafeed.max) {
+            datafeed.value = value;
+            datafeed.timestamp = timestamp;
 
-        msg!("New value {} for {}", datafeed.value, symbol);
+            msg!("New value {} for {}", datafeed.value, symbol);
+        }
 
         Ok(())
     }
@@ -95,6 +97,51 @@ pub mod oracle {
 
         Ok(())
     }
+
+    // Set an external auditor
+    pub fn set_auditor(ctx: Context<SetAuditor>, address: Pubkey) -> Result<()> {
+        let datafeed = &mut ctx.accounts.datafeed;
+
+       if ctx.accounts.signer.key() != datafeed.owner {
+            return err!(OracleErrors::AccessDenied);            
+        }
+
+        datafeed.auditor=address;
+
+        msg!("New auditor {}", address);
+
+        Ok(())
+    }
+    
+    // Set range limits
+    pub fn set_limit(ctx: Context<SetLimit>, min: i32, max: i32) -> Result<()> {
+        let datafeed = &mut ctx.accounts.datafeed;
+
+       // owner or auditor can set the range
+       if ctx.accounts.signer.key() != datafeed.owner && ctx.accounts.signer.key() != datafeed.auditor {
+            return err!(OracleErrors::AccessDenied);            
+        }
+
+        datafeed.min=min;
+        datafeed.max=max;
+
+        msg!("New range defined by {}: min {} and max {}", ctx.accounts.signer.key(), min, max);
+
+        Ok(())
+    }
+
+    // check limits
+    priv fn check_limit(value: i32 , min: i32, max: i32) -> bool> {
+       
+        if min == 0 && max == 0 { return true } ;
+
+        if value >= min && value <= max { return true }
+
+        msg!("Value {} out of range ", value);
+
+        return false;
+    }
+
 }
 
 // Definition of accounts for initializing the Oracle
@@ -144,11 +191,27 @@ pub struct AddSubscription<'info> {
     #[account(mut)]
     pub datafeed: Account<'info, DataFeed>,
     pub signer: Signer<'info>,
-}
+} 
 
 // Definition of accounts for revoking a subscription from the data feed
 #[derive(Accounts)]
 pub struct RevokeSubscription<'info> {
+    #[account(mut)]
+    pub datafeed: Account<'info, DataFeed>,
+    pub signer: Signer<'info>,
+}
+
+// Definition for setting an external auditor for the data feed
+#[derive(Accounts)]
+pub struct SetAuditor<'info> {
+    #[account(mut)]
+    pub datafeed: Account<'info, DataFeed>,
+    pub signer: Signer<'info>,
+}
+
+// Definition for set the allowed range of value for the data feed
+#[derive(Accounts)]
+pub struct SetLimit<'info> {
     #[account(mut)]
     pub datafeed: Account<'info, DataFeed>,
     pub signer: Signer<'info>,
@@ -161,6 +224,9 @@ pub struct DataFeed {
     timestamp: u32,
     license: u8,
     owner: Pubkey,
+    auditor: Pubkey,
+    min: i32,
+    max: i32,
     subscribers: Vec<Pubkey>,
 }
 
