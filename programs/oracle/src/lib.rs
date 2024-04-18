@@ -113,7 +113,7 @@ pub mod oracle {
         Ok(())
     }
     
-    // Set range limits
+    // Set range limit 
     pub fn set_limit(ctx: Context<SetLimit>, min: i32, max: i32) -> Result<()> {
         let datafeed = &mut ctx.accounts.datafeed;
 
