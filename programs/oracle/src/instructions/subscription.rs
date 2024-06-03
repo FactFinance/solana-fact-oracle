@@ -1,5 +1,3 @@
-// subscription.rs
-
 // Import necessary items from the prelude and other modules
 use anchor_lang::prelude::*;
 use crate::{Subscribers, DataFeed, OracleErrors};

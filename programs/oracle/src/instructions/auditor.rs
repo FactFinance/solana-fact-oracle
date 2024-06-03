@@ -1,6 +1,5 @@
+// Import necessary items from the prelude and other modules
 use anchor_lang::prelude::*;
-
-// Import necessary items from the crate
 use crate::{FeedAuditor, DataFeed, OracleErrors};
 
 // Set an external auditor for the data feed

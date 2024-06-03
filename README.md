@@ -65,7 +65,6 @@ Compile, deploy and Run:
 
 Test result
 
-  Fact Finance Oracle
     ✔ Initialize the oracle! (40ms)
     ✔ Set Value! (731ms)
     ✔ Set License! (809ms)

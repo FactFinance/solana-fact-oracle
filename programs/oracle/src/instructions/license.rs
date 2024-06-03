@@ -1,5 +1,4 @@
-// license.rs
-
+// Import necessary items from the prelude and other modules
 use anchor_lang::prelude::*;
 use crate::{DataFeed, OracleErrors};
 
