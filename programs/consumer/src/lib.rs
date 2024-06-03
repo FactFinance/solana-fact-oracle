@@ -2,10 +2,12 @@
 use anchor_lang::prelude::*;
 use oracle::cpi::accounts::GetDataFeed;
 use oracle::program::Oracle;
-use oracle::{self, DataFeed};
+use oracle::{self, DataFeed, Subscribers};
 
 // Declaring the ID for the consumer program
-declare_id!("4aFLyxNC94mvefKLXDZ7eBbMVe367nZXW5txec8kX6JW");
+//declare_id!("4aFLyxNC94mvefKLXDZ7eBbMVe367nZXW5txec8kX6JW");
+declare_id!("6YvWpe3g6nxwQiSNXJg7hH3TKxkfitCXYQH5oxmho9Eh");
+
 
 // Definition of the consumer program module
 #[program]
@@ -20,6 +22,7 @@ mod consumer {
                 ctx.accounts.oracle_program.to_account_info(),                
                 GetDataFeed {
                     datafeed: ctx.accounts.datafeed.to_account_info(),
+                    subscribers: ctx.accounts.subscribers.to_account_info(),
                     signer: ctx.accounts.signer.to_account_info(),
                 },
             ),             
@@ -40,6 +43,7 @@ mod consumer {
 pub struct PullOracle<'info> {
     #[account(mut)]
     pub datafeed: Account<'info, DataFeed>,
+    pub subscribers: Account<'info, Subscribers>,
     pub oracle_program: Program<'info, Oracle>,
     pub signer: Signer<'info>,
 }

@@ -1,12 +1,13 @@
 [package]
 name = "oracle"
 version = "0.1.0"
-description = "Created with Anchor"
+description = "Fact Finance Oracle"
 edition = "2021"
 
 [lib]
 name = "oracle"
 crate-type = ["cdylib", "lib"]
+
 
 [features]
 no-entrypoint = []
@@ -16,4 +17,5 @@ cpi = ["no-entrypoint"]
 default = []
 
 [dependencies]
-anchor-lang = "0.28.0"
+anchor-lang = "0.29.0"
+solana-program = "*"

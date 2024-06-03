@@ -5,3 +5,7 @@ target
 **/*.rs.bk
 node_modules
 test-ledger
+._.DS_Store
+test-ledger
+yarn.lock
+tests/test.ts

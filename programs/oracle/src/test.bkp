@@ -144,3 +144,20 @@ describe("Fact Finance Oracle", () => {
 
 
 });
+
+
+
+help me to improve comments on the follows Fact Finance Solana Oracle : 
+The program struct is:
+/lib.rs    // start program
+/state.rs  // data structs
+/utils.rs  // errors and auxiliar functions
+/instructions/mod.rs    // includes
+/instructions/auditor.rs  // price feed auditor address and feed min and max allowed values
+/instructions/feed.rs   // add values, return values
+/instructions/license.rs  // set if its a free or a payed data feed
+/instructions/subscription.rs   // add and revoke subscribers that are allowed to query oracle
+
+the firt file:
+// state.rs
+

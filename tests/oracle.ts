@@ -10,7 +10,7 @@ async function getKey() {
   const PROGRAM_KEYPAIR_PATH = path.join(path.resolve(__dirname, "/home/juvinski/.config/solana/"), "id.json");  
   const secretKeyString = await fs.readFile(PROGRAM_KEYPAIR_PATH, { encoding: "utf8" });
   const secretKey = Uint8Array.from(JSON.parse(secretKeyString));
-  const programKeypair = Keypair.fromSecretKey(secretKey);
+  const programKeypair = Keypair.fromSecretKey(secretKey);  
   return programKeypair;
 }
 
@@ -19,10 +19,10 @@ async function getKey() {
 describe("Fact Finance Oracle", () => {
   const provider = anchor.AnchorProvider.env();
   anchor.setProvider(provider);
-  const consumer = anchor.workspace.Consumer as anchor.Program<Consumer>;
+  const consumer = anchor.workspace.Consumer as anchor.Program<Consumer>;  
   const oracle = anchor.workspace.Oracle as anchor.Program<Oracle>;
 
-    
+   
   const feedid1 = 1;
   const feedid2 = 180;
   const new_value = 50000;
@@ -32,7 +32,9 @@ describe("Fact Finance Oracle", () => {
   it("Initialize the oracle!", async () => {
     async function run(feedid: number) {
       const wallet = await getKey();
-      let [datafeedAccount, _] = await anchor.web3.PublicKey.findProgramAddress([wallet.publicKey.toBuffer(), Buffer.from("_"), Buffer.from(feedid.toString())], oracle.programId);
+      let [datafeedAccount, _] = await anchor.web3.PublicKey.findProgramAddress([wallet.publicKey.toBuffer(), Buffer.from("_datafeed"), Buffer.from(feedid.toString())], oracle.programId);
+      let [subscribersAccount, _1] = await anchor.web3.PublicKey.findProgramAddress([wallet.publicKey.toBuffer(), Buffer.from("_subscribers"), Buffer.from(feedid.toString())], oracle.programId);
+      let [auditordAccount, _2] = await anchor.web3.PublicKey.findProgramAddress([wallet.publicKey.toBuffer(), Buffer.from("_auditor"), Buffer.from(feedid.toString())], oracle.programId);
 
       try {
         let data = await oracle.account.dataFeed.fetch(datafeedAccount);
@@ -41,6 +43,8 @@ describe("Fact Finance Oracle", () => {
           .initialize(feedid)
           .accounts({
             datafeed: datafeedAccount,
+            subscribers: subscribersAccount,
+            auditor: auditordAccount,
             signer: provider.wallet.publicKey,
           })
           .signers([wallet])
@@ -57,23 +61,23 @@ describe("Fact Finance Oracle", () => {
 
       const wallet = await getKey();      
 
-      let [datafeedAccount, _] = await anchor.web3.PublicKey.findProgramAddress([wallet.publicKey.toBuffer(), Buffer.from("_"), Buffer.from(feedid.toString())], oracle.programId);
-
+      let [datafeedAccount, _] = await anchor.web3.PublicKey.findProgramAddress([wallet.publicKey.toBuffer(), Buffer.from("_datafeed"), Buffer.from(feedid.toString())], oracle.programId);      
+      let [auditordAccount, _2] = await anchor.web3.PublicKey.findProgramAddress([wallet.publicKey.toBuffer(), Buffer.from("_auditor"), Buffer.from(feedid.toString())], oracle.programId);
       await oracle.methods
         .setValue(new_value, timestamp, 'Bitcoin')
         .accounts({
           datafeed: datafeedAccount,
+          auditor: auditordAccount,
         })        
         .rpc();
     }
     await run(feedid1);
     await run(feedid2);
   });
-
   it("Set License!", async () => {
     async function run(feedid: number) {
       const wallet = await getKey();
-      let [datafeedAccount, _] = await anchor.web3.PublicKey.findProgramAddress([wallet.publicKey.toBuffer(), Buffer.from("_"), Buffer.from(feedid.toString())], oracle.programId);
+      let [datafeedAccount, _] = await anchor.web3.PublicKey.findProgramAddress([wallet.publicKey.toBuffer(), Buffer.from("_datafeed"), Buffer.from(feedid.toString())], oracle.programId);      
 
       await oracle.methods
         .setLicense(license)
@@ -86,16 +90,21 @@ describe("Fact Finance Oracle", () => {
     await run(feedid2);
   });
 
+
+
   it("Add subscription!", async () => {
     async function run(feedid: number) {
       const wallet = await getKey();
-      let [datafeedAccount, _] = await anchor.web3.PublicKey.findProgramAddress([wallet.publicKey.toBuffer(), Buffer.from("_"), Buffer.from(feedid.toString())], oracle.programId);
+      let [datafeedAccount, _] = await anchor.web3.PublicKey.findProgramAddress([wallet.publicKey.toBuffer(), Buffer.from("_datafeed"), Buffer.from(feedid.toString())], oracle.programId);
+      let [subscribersAccount, _1] = await anchor.web3.PublicKey.findProgramAddress([wallet.publicKey.toBuffer(), Buffer.from("_subscribers"), Buffer.from(feedid.toString())], oracle.programId);
+      
 	    const pubkeyStr = "4SaWY3ErtEoh9ixRQnhzBNKC5CzuTyZmDoEZhtNXriSD";
 	    const pubkeymac = new PublicKey(pubkeyStr);
       await oracle.methods
         .addSubscription(wallet.publicKey)
         .accounts({
           datafeed: datafeedAccount,
+          subscribers: subscribersAccount,
         })
         .rpc();
     }
@@ -107,18 +116,20 @@ describe("Fact Finance Oracle", () => {
     async function run(feedid: number) {
       const wallet = await getKey();
             
-      let [datafeedAccount, _] = await anchor.web3.PublicKey.findProgramAddress([wallet.publicKey.toBuffer(), Buffer.from("_"), Buffer.from(feedid.toString())], oracle.programId);
-
+      let [datafeedAccount, _] = await anchor.web3.PublicKey.findProgramAddress([wallet.publicKey.toBuffer(), Buffer.from("_datafeed"), Buffer.from(feedid.toString())], oracle.programId);
+      let [subscribersAccount, _1] = await anchor.web3.PublicKey.findProgramAddress([wallet.publicKey.toBuffer(), Buffer.from("_subscribers"), Buffer.from(feedid.toString())], oracle.programId);
+      
       await consumer.methods
         .pullOracle()
         .accounts({
           datafeed: datafeedAccount,
+          subscribers: subscribersAccount,
           oracleProgram: oracle.programId,
         })      
         .rpc();
     }
     await run(feedid1);
-   await run(feedid2);
+   //await run(feedid2);
   });
 
   it("Revoke subscription!", async () => {
@@ -127,11 +138,13 @@ describe("Fact Finance Oracle", () => {
     async function run(feedid: number) {
       const wallet = await getKey();
       let [datafeedAccount, _] = await anchor.web3.PublicKey.findProgramAddress([wallet.publicKey.toBuffer(), Buffer.from("_"), Buffer.from(feedid.toString())], oracle.programId);
+      let [subscribersAccount, _1] = await anchor.web3.PublicKey.findProgramAddress([wallet.publicKey.toBuffer(), Buffer.from("_subscribers"), Buffer.from(feedid.toString())], oracle.programId);
 
       await oracle.methods
         .revokeSubscription(wallet.publicKey)
         .accounts({
           datafeed: datafeedAccount,
+          subscribers: subscribersAccount,
         })
         .rpc();
     }

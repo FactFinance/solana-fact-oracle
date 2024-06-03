@@ -24,11 +24,11 @@
     @param ctx: Context<SetValue>, 
     @param value: i32, 
     @param timestamp: u32, 
-    @param symbol: String) 
+    @param symbol: String
     @return //none
 
 ### get_datafeed()
-    // Gets data from the data feed
+    // Get data from the data feed
     // returns value, timestamp , confidendIndex
     // i32, u32, u8
 
@@ -36,7 +36,7 @@
 The string format to create the address is:
   - wallet.publicKey.toBuffer()
   - Buffer.from("_")
-  - Buffer.from(feedid.toString())]
+  - Buffer.from(feedid.toString())
   - oracle.programId
 
 ## Running Oracle Address
@@ -57,11 +57,22 @@ Then, install the dependencies:
 ```
 
 
-Run:
+Compile, deploy and Run:
 
 ```bash
-    anchor run test
+    anchor build && anchor deploy && anchor run test
 ```
+
+Test result
+
+  Fact Finance Oracle
+    ✔ Initialize the oracle! (40ms)
+    ✔ Set Value! (731ms)
+    ✔ Set License! (809ms)
+    ✔ Add subscription! (810ms)
+    ✔ Pull the oracle! (404ms)
+    ✔ Revoke subscription! (810ms)
+
 
 ## Be in touch
   - https://fact.finance
