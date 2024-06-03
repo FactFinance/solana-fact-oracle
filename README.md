@@ -63,8 +63,9 @@ Compile, deploy and Run:
     anchor build && anchor deploy && anchor run test
 ```
 
-Test result
 
+Automated Test 
+  
     ✔ Initialize the oracle! (40ms)
     ✔ Set Value! (731ms)
     ✔ Set License! (809ms)
