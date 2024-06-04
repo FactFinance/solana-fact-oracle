@@ -21,11 +21,23 @@ declare_id!("GVphyWPDGnsrxCGfXnBkeddqhoSRmVFSYUrhFMfsXrCy");
 pub mod oracle {
     use super::*;
 
+    /// Initializes the Oracle .
+    /// Sets the signer as the owner .
+    pub fn initialize_oracle(ctx: Context<InitializeOracle>, ) -> Result<()> {
+        instructions::initialize_oracle(ctx)
+    }
+
     /// Initializes a new data feed with a unique identifier.
     /// Sets the signer as the owner of the data feed.
-    pub fn initialize(ctx: Context<InitializeOracle>, feedid: u16) -> Result<()> {
-        instructions::initialize(ctx, feedid)
+    pub fn initialize_datafeed(ctx: Context<InitializeDatafeed>, feedid: u16) -> Result<()> {
+        instructions::initialize_datafeed(ctx, feedid)
     }
+
+    /// Subscribe the service
+    pub fn subscribe(ctx: Context<Subscribe>, address: Pubkey ) -> Result<()> {
+        instructions::subscribe(ctx, address)
+    }
+
 
     /// Retrieves the current value and timestamp from the data feed.
     /// Only accessible if the user has the required subscription or the feed is open.

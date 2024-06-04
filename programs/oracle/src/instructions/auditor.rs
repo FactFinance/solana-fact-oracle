@@ -1,15 +1,15 @@
 // Import necessary items from the prelude and other modules
 use anchor_lang::prelude::*;
-use crate::{FeedAuditor, DataFeed, OracleErrors};
+use crate::{Settings,FeedAuditor,OracleErrors};
 
 // Set an external auditor for the data feed
 pub fn set_auditor(ctx: Context<SetAuditor>, address: Pubkey) -> Result<()> {
     // Borrow the data feed and auditor accounts mutably from the context
-    let datafeed = &mut ctx.accounts.datafeed;
+    let settings_account = &mut ctx.accounts.settings;
     let auditor_account = &mut ctx.accounts.auditor;
 
     // Check if the caller is the owner of the data feed
-    if ctx.accounts.signer.key() != datafeed.owner {
+    if ctx.accounts.signer.key() != settings_account.owner {
         // Return an error if the caller is not the owner
         return err!(OracleErrors::AccessDenied);            
     }
@@ -27,11 +27,11 @@ pub fn set_auditor(ctx: Context<SetAuditor>, address: Pubkey) -> Result<()> {
 // Set the allowed range of value for the data feed
 pub fn set_limit(ctx: Context<SetLimit>, min: i32, max: i32) -> Result<()> {
     // Borrow the data feed and auditor accounts mutably from the context
-    let datafeed = &mut ctx.accounts.datafeed;
+    let settings_account = &mut ctx.accounts.settings;
     let auditor_account = &mut ctx.accounts.auditor;
 
     // Check if the caller is the owner or auditor of the data feed
-    if ctx.accounts.signer.key() != datafeed.owner && ctx.accounts.signer.key() != auditor_account.auditor {
+    if ctx.accounts.signer.key() != settings_account.owner && ctx.accounts.signer.key() != auditor_account.auditor {
         // Return an error if the caller is neither the owner nor the auditor
         return err!(OracleErrors::AccessDenied);            
     }
@@ -50,17 +50,19 @@ pub fn set_limit(ctx: Context<SetLimit>, min: i32, max: i32) -> Result<()> {
 // Definition for setting an external auditor for the data feed
 #[derive(Accounts)]
 pub struct SetAuditor<'info> {
-    #[account(mut)]
-    pub datafeed: Account<'info, DataFeed>,
-    pub auditor: Account<'info, FeedAuditor>,
+    #[account(seeds = [ b"_settings"],bump)]
+    pub settings: Account<'info, Settings>,  
     pub signer: Signer<'info>,
+    #[account(mut)]
+    pub auditor: Account<'info, FeedAuditor>,
 }
 
 // Definition for setting the allowed range of value for the data feed
 #[derive(Accounts)]
 pub struct SetLimit<'info> {
+    #[account(seeds = [ b"_settings"],bump)]
+    pub settings: Account<'info, Settings>,
     #[account(mut)]
-    pub datafeed: Account<'info, DataFeed>,
     pub auditor: Account<'info, FeedAuditor>,
     pub signer: Signer<'info>,
 }

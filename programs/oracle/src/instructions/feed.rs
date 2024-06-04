@@ -1,15 +1,10 @@
 // Import necessary items from the prelude and other modules
 use anchor_lang::prelude::*;
-use crate::{DataFeed, Subscribers, FeedAuditor, OracleErrors, check_limit};
+use crate::{Settings,DataFeed, Subscribers, FeedAuditor, OracleErrors, check_limit};
+
 
 // Initializes a data feed
-pub fn initialize(ctx: Context<InitializeOracle>, _feedid: u16) -> Result<()> {
-    // Borrow the data feed account mutably from the context
-    let datafeed = &mut ctx.accounts.datafeed;    
-    // Set the owner of the data feed
-    datafeed.owner = ctx.accounts.signer.key();
-
-    // Return success
+pub fn initialize_datafeed(_ctx: Context<InitializeDatafeed>, _feedid: u16) -> Result<()> {    
     Ok(())
 }
 
@@ -37,9 +32,10 @@ pub fn set_value(ctx: Context<SetValue>, value: i32, timestamp: u32, symbol: Str
     // Borrow the data feed and auditor accounts mutably from the context
     let datafeed = &mut ctx.accounts.datafeed;
     let auditor_account = &mut ctx.accounts.auditor;
+    let settings_account = &mut ctx.accounts.settings;
 
     // Check if the caller is the owner of the data feed
-    if ctx.accounts.signer.key() != datafeed.owner {
+    if ctx.accounts.signer.key() != settings_account.owner {
         // Return an error if the caller is not the owner
         return err!(OracleErrors::AccessDenied);
     }
@@ -58,10 +54,11 @@ pub fn set_value(ctx: Context<SetValue>, value: i32, timestamp: u32, symbol: Str
     Ok(())
 }
 
+
 // Definition of accounts for initializing the Oracle
 #[derive(Accounts)]
 #[instruction(feedid: u16)]
-pub struct InitializeOracle<'info> {
+pub struct InitializeDatafeed<'info> {     
     #[account(
         init,
         payer = signer,
@@ -74,28 +71,20 @@ pub struct InitializeOracle<'info> {
         init,
         payer = signer,
         space = 256,
-        seeds = [signer.key().as_ref(), b"_subscribers", feedid.to_string().as_ref()],
-        bump
-    )]
-    pub subscribers: Account<'info, Subscribers>,
-    #[account(
-        init,
-        payer = signer,
-        space = 256,
         seeds = [signer.key().as_ref(), b"_auditor", feedid.to_string().as_ref()],
         bump
-    )]
-    pub auditor: Account<'info, FeedAuditor>,
-    #[account(mut)]
-    pub signer: Signer<'info>,    
+    )]    
+    pub auditor: Account<'info, FeedAuditor>,   
     pub system_program: Program<'info, System>,
+    #[account(mut)]     
+    pub signer: Signer<'info>,    
 }
 
 // Definition of accounts for getting data from the data feed
 #[derive(Accounts)]
-pub struct GetDataFeed<'info> {
-    #[account(mut)]
+pub struct GetDataFeed<'info> {    
     pub datafeed: Account<'info, DataFeed>,
+    #[account(seeds = [b"_subscribers"],bump)]
     pub subscribers: Account<'info, Subscribers>,
     pub signer: Signer<'info>,
 }
@@ -103,8 +92,10 @@ pub struct GetDataFeed<'info> {
 // Definition of accounts for setting the value of the data feed
 #[derive(Accounts)]
 pub struct SetValue<'info> {
+    #[account(seeds = [ b"_settings"],bump)]
+    pub settings: Account<'info, Settings>,  
+    pub auditor: Account<'info, FeedAuditor>,    
     #[account(mut)]
     pub datafeed: Account<'info, DataFeed>,  
-    pub auditor: Account<'info, FeedAuditor>,    
     pub signer: Signer<'info>,
 }

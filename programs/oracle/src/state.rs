@@ -1,5 +1,14 @@
 use anchor_lang::prelude::*;
 
+/// Oracle controler account
+#[account]
+pub struct Settings {
+    /// Public key of the owner who controls this data feed.
+    pub owner: Pubkey,  
+    /// Subscription price
+    pub price: u64,  
+}
+
 /// Represents a data feed account, storing the current value, timestamp, license type, and owner.
 /// This struct defines the core data associated with each feed.
 #[account]
@@ -10,8 +19,7 @@ pub struct DataFeed {
     pub timestamp: u32,
     /// License type: 0 for free access, 1 for subscription required.
     pub license: u8,
-    /// Public key of the owner who controls this data feed.
-    pub owner: Pubkey,    
+      
 }
 
 /// Represents a feed auditor account, storing the auditor's public key and the permissible value range.
@@ -32,4 +40,14 @@ pub struct FeedAuditor {
 pub struct Subscribers {    
     /// Vector of public keys representing the subscribers.
     pub subscribers: Vec<Pubkey>,
+}
+
+/// Represents a score of a duel
+pub struct DuelFeed {    
+    pub player1: String,    
+    pub score1: i32,    
+    pub player2: String,    
+    pub score2: i32,    
+    pub winner: i8,    
+    pub timestamp: u32,    
 }
