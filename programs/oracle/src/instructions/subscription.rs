@@ -5,14 +5,13 @@ use crate::{Settings, Subscribers,  OracleErrors};
 use anchor_spl::token::{self, Token, TokenAccount, Transfer};
 
 
-
 pub fn subscribe(ctx: Context<Subscribe>, address: Pubkey) -> Result<()> {
 
     let settings_account = &mut ctx.accounts.settings;
 
-    // if ctx.accounts.receiver.key() != settings_account.owner {
-    //     return err!(OracleErrors::AccessDenied);
-    // }
+    if ctx.accounts.receiver.key() != settings_account.owner {
+        return err!(OracleErrors::AccessDenied);
+    }
 
     // Amount of BONK to transfer 
     let amount: u64 = settings_account.price ;
@@ -29,7 +28,7 @@ pub fn subscribe(ctx: Context<Subscribe>, address: Pubkey) -> Result<()> {
     // Perform the token transfer
     token::transfer(cpi_ctx, amount)?;
 
-    msg!("Received 1 BONK from {} to new signer {}", ctx.accounts.sender.key(), address);
+    msg!("Received 1 BONK from {} to the new subscriber {}", ctx.accounts.sender.key(), address);
 
     let subscribers_account = &mut ctx.accounts.subscribers;
 
