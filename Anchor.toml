@@ -3,8 +3,8 @@ seeds = false
 skip-lint = false
 
 [programs.localnet]
-oracle = "GVphyWPDGnsrxCGfXnBkeddqhoSRmVFSYUrhFMfsXrCy"
-consumer = "6YvWpe3g6nxwQiSNXJg7hH3TKxkfitCXYQH5oxmho9Eh"
+oracle = "FmtZYWDGyXb7qNhpsXQPZ3n23PC84sBoJGFSLuWz8uGR"
+consumer = "EjWZ7S5PyFVDSipd2BZTfHbDP5DiWWFNBK8pmiCVQj6q"
 
 [registry]
 url = "http://127.0.0.1:8899"

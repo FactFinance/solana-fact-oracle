@@ -13,7 +13,7 @@ pub fn subscribe(ctx: Context<Subscribe>, address: Pubkey) -> Result<()> {
         return err!(OracleErrors::AccessDenied);
     }
 
-    // Amount of BONK to transfer 
+    // Amount to transfer 
     let amount: u64 = settings_account.price ;
 
     // Create the transfer instruction
@@ -28,7 +28,7 @@ pub fn subscribe(ctx: Context<Subscribe>, address: Pubkey) -> Result<()> {
     // Perform the token transfer
     token::transfer(cpi_ctx, amount)?;
 
-    msg!("Received 1 BONK from {} to the new subscriber {}", ctx.accounts.sender.key(), address);
+    msg!("Received 1 Token from {} to the new subscriber {}", ctx.accounts.sender.key(), address);
 
     let subscribers_account = &mut ctx.accounts.subscribers;
 
@@ -96,8 +96,6 @@ pub struct Subscribe<'info> {
     pub subscribers: Account<'info, Subscribers>,    
     pub token: Program<'info, Token>,
 }
-
-
 
 // Definition of accounts for adding a subscription to the data feed
 #[derive(Accounts)]

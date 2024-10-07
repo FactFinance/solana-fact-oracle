@@ -13,7 +13,7 @@ mod instructions;
 use instructions::*;
 
 // Declares the ID for the program
-declare_id!("GVphyWPDGnsrxCGfXnBkeddqhoSRmVFSYUrhFMfsXrCy");
+declare_id!("FmtZYWDGyXb7qNhpsXQPZ3n23PC84sBoJGFSLuWz8uGR");
 
 /// Definition of the Oracle program module
 /// This module contains all the instruction handlers for the Oracle program.
@@ -41,14 +41,14 @@ pub mod oracle {
 
     /// Retrieves the current value and timestamp from the data feed.
     /// Only accessible if the user has the required subscription or the feed is open.
-    pub fn get_datafeed(ctx: Context<GetDataFeed>) -> Result<(i32, u32)> {
+    pub fn get_datafeed(ctx: Context<GetDataFeed>) -> Result<(i32, u32, u8)> {
         instructions::get_datafeed(ctx)
     }
 
     /// Sets the value of the data feed, with the provided timestamp and symbol.
     /// Only the owner of the data feed can set the value.
-    pub fn set_value(ctx: Context<SetValue>, value: i32, timestamp: u32, symbol: String) -> Result<()> {
-        instructions::set_value(ctx, value, timestamp, symbol)
+    pub fn set_value(ctx: Context<SetValue>, value: i32, timestamp: u32, symbol: String , confidence: u8 ) -> Result<()> {
+        instructions::set_value(ctx, value, timestamp, symbol, confidence)
     }
 
     /// Sets the license type of the data feed.

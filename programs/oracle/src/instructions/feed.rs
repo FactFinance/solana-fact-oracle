@@ -9,7 +9,7 @@ pub fn initialize_datafeed(_ctx: Context<InitializeDatafeed>, _feedid: u16) -> R
 }
 
 // Gets data from the data feed
-pub fn get_datafeed(ctx: Context<GetDataFeed>) -> Result<(i32, u32)> {
+pub fn get_datafeed(ctx: Context<GetDataFeed>) -> Result<(i32, u32, u8)> {
     // Borrow the data feed and subscribers accounts mutably from the context
     let datafeed = &mut ctx.accounts.datafeed;
     let subscribers_account = &mut ctx.accounts.subscribers;
@@ -24,11 +24,11 @@ pub fn get_datafeed(ctx: Context<GetDataFeed>) -> Result<(i32, u32)> {
     msg!("Returning value {} from {} to {}", datafeed.value, datafeed.timestamp, &ctx.accounts.signer.key() );
 
     // Return the value and timestamp
-    Ok((datafeed.value, datafeed.timestamp))
+    Ok((datafeed.value, datafeed.timestamp, datafeed.confidence))
 }
 
 // Sets the value of the data feed
-pub fn set_value(ctx: Context<SetValue>, value: i32, timestamp: u32, symbol: String) -> Result<()> {
+pub fn set_value(ctx: Context<SetValue>, value: i32, timestamp: u32, symbol: String, confidence: u8) -> Result<()> {
     // Borrow the data feed and auditor accounts mutably from the context
     let datafeed = &mut ctx.accounts.datafeed;
     let auditor_account = &mut ctx.accounts.auditor;
@@ -45,15 +45,14 @@ pub fn set_value(ctx: Context<SetValue>, value: i32, timestamp: u32, symbol: Str
         // Set the value and timestamp of the data feed
         datafeed.value = value;
         datafeed.timestamp = timestamp;
+        datafeed.confidence = confidence;
 
         // Log the new value
         msg!("New value {} for {}", datafeed.value, symbol);
     }
-
     // Return success
     Ok(())
 }
-
 
 // Definition of accounts for initializing the Oracle
 #[derive(Accounts)]

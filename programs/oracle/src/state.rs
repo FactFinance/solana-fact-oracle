@@ -19,7 +19,11 @@ pub struct DataFeed {
     pub timestamp: u32,
     /// License type: 0 for free access, 1 for subscription required.
     pub license: u8,
-      
+    /// confidence index:
+    // 1: one deviation
+    // 2: two deviations
+    // 3: outliers
+    pub confidence: u8,     
 }
 
 /// Represents a feed auditor account, storing the auditor's public key and the permissible value range.
@@ -51,3 +55,4 @@ pub struct DuelFeed {
     pub winner: i8,    
     pub timestamp: u32,    
 }
+

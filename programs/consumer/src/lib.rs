@@ -5,8 +5,7 @@ use oracle::program::Oracle;
 use oracle::{self, DataFeed, Subscribers};
 
 // Declaring the ID for the consumer program
-//declare_id!("4aFLyxNC94mvefKLXDZ7eBbMVe367nZXW5txec8kX6JW");
-declare_id!("6YvWpe3g6nxwQiSNXJg7hH3TKxkfitCXYQH5oxmho9Eh");
+declare_id!("EjWZ7S5PyFVDSipd2BZTfHbDP5DiWWFNBK8pmiCVQj6q");
 
 
 // Definition of the consumer program module
@@ -29,10 +28,10 @@ mod consumer {
         );
 
         // Unpacking the result tuple
-        let (value, timestamp) = result?.get();
+        let (value, timestamp, confidence) = result?.get();
 
         // Logging the retrieved data
-        msg!("consumer value {} e timestamp {}", value, timestamp);
+        msg!("consumer value {} and timestamp {} with confidence {} ", value, timestamp, confidence);
 
         Ok(())
     }
