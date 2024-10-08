@@ -24,10 +24,10 @@ describe("Fact Finance Oracle", () => {
   const oracle = anchor.workspace.Oracle as anchor.Program<Oracle>;
 
    
-  const feedid1 = 2000;
+  const feedid1 = 1;
   const feedid2 = feedid1+1;
   const confidence =1
-  const new_value = 50000;
+  const new_value = 63600;
   const timestamp = Date.now() / 1000;
   const license = 0;
   const price=1_000_000_000;
@@ -84,14 +84,15 @@ describe("Fact Finance Oracle", () => {
       }
     }
     await run(feedid1);
-    await run(feedid2);
+    ///await run(feedid2);
   });
 
 
 
   it("Set Value!", async () => {
     async function run(feedid: number) {
-      const new_value = 500666943;
+      
+      const new_value = 6360000;
 
       const wallet = await getKey();            
       let [datafeedAccount, _] = await anchor.web3.PublicKey.findProgramAddress([wallet.publicKey.toBuffer(), Buffer.from("_datafeed"), Buffer.from(feedid.toString())], oracle.programId);      

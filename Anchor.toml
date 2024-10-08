@@ -10,7 +10,7 @@ consumer = "EjWZ7S5PyFVDSipd2BZTfHbDP5DiWWFNBK8pmiCVQj6q"
 url = "http://127.0.0.1:8899"
 
 [provider]
-cluster = "localnet"
+cluster = "devnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]
