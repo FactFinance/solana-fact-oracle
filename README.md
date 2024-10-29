@@ -4,6 +4,11 @@ At Fact Finance, we're reshaping web3 infrastructure with tailored, reliable rea
 
 [Read more about the project](https://respected-yard-256.notion.site/About-Fact-Finance-c2c2a72cdc914fd4b3094d71fe045437)
 
+
+# Demo address
+Testnet - https://explorer.solana.com/address/9UYoqKcSHFhTBRoiYBcrkabsBbUKAdx68TZGLKokZKR1?cluster=testnet
+Devnet - https://explorer.solana.com/address/9UYoqKcSHFhTBRoiYBcrkabsBbUKAdx68TZGLKokZKR1?cluster=devnet
+
 ## Repository Structure 
 
 This repository provides a comprehensive set of smart contracts for Fact Finance Oracle protocol. The repository is divided into several modules: controller, oracle, auditor, store, and helpers. Each module serves a specific purpose in the overall system.
